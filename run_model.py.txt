@@ -1,0 +1,32 @@
+import cv2
+import csv
+
+steering_img = cv2.imread('steering_wheel_image.jpg',0)
+rows,cols = steering_img.shape
+
+smoothed_angle = 0
+in_file = open('test-predictions.csv', 'r')
+
+csv_reader = csv.reader(in_file)
+
+header = None
+cv2.imshow("steering wheel", steering_img)
+
+for row in csv_reader:
+    if header == None:
+        header = row
+        continue
+    if(cv2.waitKey(12) == ord('q')): break
+    car_img = cv2.imread(row[0])
+    cv2.imshow('frame', car_img)
+    degrees = float(row[1])
+
+    diff = degrees - smoothed_angle
+
+    if diff != 0:
+        smoothed_angle += 0.2 * pow(abs(diff), 2.0 / 3.0) * (diff) / abs(diff)
+    M = cv2.getRotationMatrix2D((cols/2,rows/2),-smoothed_angle,1)
+    dst = cv2.warpAffine(steering_img,M,(cols,rows))
+    cv2.imshow("steering wheel", dst)
+    
+cv2.destroyAllWindows()
